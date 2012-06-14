@@ -21,7 +21,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 #include "qe3.h"
-#include "io.h"
 
 eclass_t	*eclass;
 eclass_t	*eclass_bad;
@@ -160,7 +159,7 @@ void Eclass_InsertAlphabetized (eclass_t *e)
 
 
 	s = eclass;
-	if (stricmp (e->name, s->name) < 0)
+	if (Q_strcasecmp (e->name, s->name) < 0)
 	{
 		e->next = s;
 		eclass = e;
@@ -169,7 +168,7 @@ void Eclass_InsertAlphabetized (eclass_t *e)
 
 	do
 	{
-		if (!s->next || stricmp (e->name, s->next->name) < 0)
+		if (!s->next || Q_strcasecmp (e->name, s->next->name) < 0)
 		{
 			e->next = s->next;
 			s->next = e;
@@ -216,6 +215,7 @@ void Eclass_ScanFile (char *filename)
 
 void Eclass_InitForSourceDirectory (char *path)
 {
+#ifdef _WIN32
 	struct _finddata_t fileinfo;
 	int		handle;
 	char	filename[1024];
@@ -248,6 +248,7 @@ void Eclass_InitForSourceDirectory (char *path)
 	}
 
 	eclass_bad = Eclass_InitFromText ("/*QUAKED UNKNOWN_CLASS (0 0.5 0) ?");
+#endif
 }
 
 eclass_t *Eclass_ForName (char *name, qboolean has_brushes)

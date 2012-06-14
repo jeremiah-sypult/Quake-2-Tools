@@ -177,7 +177,9 @@ void Map_Free (void)
 	if (selected_brushes.next &&
 		(selected_brushes.next != &selected_brushes) )
 	{
+#ifdef _WIN32
 	    if (MessageBox(g_qeglobals.d_hwndMain, "Copy selection?", "", MB_YESNO) == IDYES)
+#endif // _WIN32
 			Map_SaveBetween ();
 	}
 
@@ -336,7 +338,9 @@ void Map_SaveFile (char *filename, qboolean use_region )
 		strcpy (backup, filename);
 		StripExtension (backup);
 		strcat (backup, ".bak");
+#ifdef _WIN32
 		_unlink (backup);
+#endif // _WIN32
 		rename (filename, backup);
 	}
 
@@ -381,6 +385,7 @@ void Map_SaveFile (char *filename, qboolean use_region )
 
 	if (!use_region)
 	{
+#ifdef _WIN32
 		time_t	timer;
 		FILE	*f;
 
@@ -394,6 +399,7 @@ void Map_SaveFile (char *filename, qboolean use_region )
 			g_qeglobals.d_workcount = 0;
 		}
 		fclose (f);
+#endif // _WIN32
 		Sys_Status ("Saved.\n", 0);
 	}
 }

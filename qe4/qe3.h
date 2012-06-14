@@ -23,28 +23,70 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef __QE3_H__
 #define __QE3_H__
 
-// disable data conversion warnings for gl
-#pragma warning(disable : 4244)     // MIPS
-#pragma warning(disable : 4136)     // X86
-#pragma warning(disable : 4051)     // ALPHA
+//==============================================================================
+//	WINDOWS
+//==============================================================================
+#ifdef _WIN32
+
+// disable warnings
+#pragma warning(disable : 4996)		// unsafe functions
+#pragma warning(disable : 4244)     // conversion
+#pragma warning(disable : 4305)		// truncation
 
 #include <windows.h>
-
+#include <io.h>
+#include <afxres.h>
+#include <commctrl.h>
 #include <gl/gl.h>
 #include <gl/glu.h>
-#include <gl/glaux.h>
-#include "glingr.h"
+#include "resource.h"
+#include "mru.h"
+
+#endif // _WIN32
+
+//==============================================================================
+//	MACH / MAC OS X
+//==============================================================================
+#ifdef __MACH__
+
+#include <OpenGL/OpenGL.h>
+#include <OpenGL/gl.h>
+#include <OpenGL/glu.h>
+
+// TODO: WINDOWS vs. MACH
+#include "resource.h"
+
+#define MAX_PATH	(255)
+
+#define MK_SHIFT	0x0001
+#define MK_CONTROL	0x0002
+#define MK_LBUTTON	0x0010
+#define MK_RBUTTON	0x0020
+#define MK_MBUTTON	0x0040
+
+#ifndef max
+#define max(a,b) (((a) > (b)) ? (a) : (b))
+#endif
+
+#ifndef min
+#define min(a,b) (((a) < (b)) ? (a) : (b))
+#endif
+
+#endif // __MACH__
+
+//==============================================================================
+//	QE3
+//==============================================================================
+
+#include <limits.h>
 #include <math.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "cmdlib.h"
 #include "mathlib.h"
 #include "parse.h"
 #include "lbmlib.h"
-
-#include <commctrl.h>
-#include "afxres.h"
-#include "resource.h"
 
 #include "qedefs.h"
 
@@ -66,7 +108,6 @@ typedef struct
 #include "camera.h"
 #include "xy.h"
 #include "z.h"
-#include "mru.h"
 
 typedef struct
 {
@@ -117,20 +158,6 @@ typedef struct
 	float     d_new_brush_bottom_z,
 		      d_new_brush_top_z;
 
-	HINSTANCE d_hInstance;
-
-	HGLRC     d_hglrcBase;
-	HDC       d_hdcBase;
-
-	HWND      d_hwndMain;
-	HWND      d_hwndCamera;
-	HWND      d_hwndEdit;
-	HWND      d_hwndEntity;
-	HWND      d_hwndTexture;
-	HWND      d_hwndXY;
-	HWND      d_hwndZ;
-	HWND      d_hwndStatus;
-
 	vec3_t    d_points[MAX_POINTS];
 	int       d_numpoints;
 	pedge_t   d_edges[MAX_EDGES];
@@ -147,8 +174,6 @@ typedef struct
 
 	xy_t         d_xy;
 
-	LPMRUMENU    d_lpMruMenu;
-
 	SavedInfo_t  d_savedinfo;
 
 	int          d_workcount;
@@ -164,6 +189,23 @@ typedef struct
 	int          d_parsed_brushes;
 
 	qboolean	show_blocks;
+#ifdef _WIN32
+	HINSTANCE d_hInstance;
+	
+	HGLRC     d_hglrcBase;
+	HDC       d_hdcBase;
+	
+	HWND      d_hwndMain;
+	HWND      d_hwndCamera;
+	HWND      d_hwndEdit;
+	HWND      d_hwndEntity;
+	HWND      d_hwndTexture;
+	HWND      d_hwndXY;
+	HWND      d_hwndZ;
+	HWND      d_hwndStatus;
+	
+	LPMRUMENU    d_lpMruMenu;
+#endif // _WIN32
 } QEGlobals_t;
 
 void *qmalloc (int size);
@@ -208,14 +250,15 @@ extern	int	update_bits;
 extern	int	screen_width;
 extern	int	screen_height;
 
-extern	HANDLE	bsp_process;
-
 char	*TranslateString (char *buf);
 
 void ProjectDialog (void);
 
 void FillTextureMenu (void);
 void FillBSPMenu (void);
+
+#ifdef _WIN32
+extern	HANDLE	bsp_process;
 
 BOOL CALLBACK Win_Dialog (
     HWND hwndDlg,	// handle to dialog box
@@ -242,11 +285,6 @@ void WXY_Create (HINSTANCE hInstance);
 void WZ_Create (HINSTANCE hInstance);
 
 //
-// win_ent.c
-//
-
-
-//
 // win_main.c
 //
 void Main_Create (HINSTANCE hInstance);
@@ -257,7 +295,7 @@ extern BOOL SaveRegistryInfo(const char *pszName, void *pvBuf, long lSize);
 extern BOOL loadRegistryInfo(const char *pszName, void *pvBuf, long *plSize);
 
 //
-// entityw.c
+// win_ent.c
 //
 BOOL CreateEntityWindow(HINSTANCE hInstance);
 void FillClassList (void);
@@ -269,15 +307,23 @@ void GetSpawnFlags(void);
 void SetKeyValuePairs(void);
 extern void BuildGammaTable(float g);
 
-
+//
 // win_dlg.c
-
+//
 void DoGamma(void);
 void DoFind(void);
 void DoRotate(void);
 void DoSides(void);
 void DoAbout(void);
 void DoSurface(void);
+
+/*
+** QE Win32 function declarations
+*/
+int  QEW_SetupPixelFormat(HDC hDC, qboolean zbuffer );
+void QEW_StopGL( HWND hWnd, HGLRC hGLRC, HDC hDC );
+
+#endif // _WIN32
 
 /*
 ** QE function declarations
@@ -291,12 +337,6 @@ void     QE_Init (void);
 qboolean QE_KeyDown (int key);
 qboolean QE_LoadProject (char *projectfile);
 qboolean QE_SingleBrush (void);
-
-/*
-** QE Win32 function declarations
-*/
-int  QEW_SetupPixelFormat(HDC hDC, qboolean zbuffer );
-void QEW_StopGL( HWND hWnd, HGLRC hGLRC, HDC hDC );
 
 /*
 ** extern declarations

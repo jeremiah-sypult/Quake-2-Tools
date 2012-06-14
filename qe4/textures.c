@@ -21,7 +21,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 #include "qe3.h"
-#include "io.h"
 
 #define	TYP_MIPTEX	68
 static unsigned	tex_palette[256];
@@ -32,8 +31,11 @@ static qboolean	nomips;
 
 #define	FONT_HEIGHT	10
 
+#ifdef _WIN32
 static HGLRC s_hglrcTexture;
 static HDC	 s_hdcTexture;
+HFONT ghFont = NULL;
+#endif // _WIN32
 
 //int		texture_mode = GL_NEAREST;
 //int		texture_mode = GL_NEAREST_MIPMAP_NEAREST;
@@ -201,8 +203,9 @@ Texture_SetMode
 void Texture_SetMode(int iMenu)
 {
 	int	i, iMode;
-	HMENU hMenu;
 	qboolean texturing = true;
+#ifdef _WIN32
+	HMENU hMenu;
 
 	hMenu = GetMenu(g_qeglobals.d_hwndMain);
 
@@ -248,6 +251,7 @@ void Texture_SetMode(int iMenu)
 	CheckMenuItem(hMenu, ID_TEXTURES_FLATSHADE, MF_BYCOMMAND | MF_UNCHECKED);
 
 	CheckMenuItem(hMenu, iMenu, MF_BYCOMMAND | MF_CHECKED);
+#endif // _WIN32
 
 	g_qeglobals.d_savedinfo.iTexMenu = iMenu;
 	texture_mode = iMode;
@@ -486,6 +490,7 @@ FillTextureMenu
 */
 void FillTextureMenu (void)
 {
+#ifdef _WIN32
 	HMENU	hmenu;
 	int		i;
 	struct _finddata_t fileinfo;
@@ -524,6 +529,7 @@ void FillTextureMenu (void)
 	} while (_findnext( handle, &fileinfo ) != -1);
 
 	_findclose (handle);
+#endif // _WIN32
 }
 
 
@@ -553,6 +559,7 @@ Texture_ShowDirectory
 */
 void	Texture_ShowDirectory (int menunum)
 {
+#ifdef _WIN32
 	struct _finddata_t fileinfo;
 	int		handle;
 	char	name[1024];
@@ -596,6 +603,7 @@ void	Texture_ShowDirectory (int menunum)
 	// select the first texture in the list
 	if (!g_qeglobals.d_texturewin.texdef.name[0])
 		SelectTexture (16, g_qeglobals.d_texturewin.height -16);
+#endif // _WIN32
 }
 
 /*
@@ -628,7 +636,10 @@ void	Texture_ShowInuse (void)
 	Sys_UpdateWindows (W_TEXTURE);
 
 	sprintf (name, "Textures: in use");
+
+#ifdef _WIN32
 	SetWindowText(g_qeglobals.d_hwndEntity, name);
+#endif // _WIN32
 
 	// select the first texture in the list
 	if (!g_qeglobals.d_texturewin.texdef.name[0])
@@ -735,7 +746,7 @@ void Texture_SetTexture (texdef_t *texdef)
 		q = Texture_NextPos (&x, &y);
 		if (!q)
 			break;
-		if (!strcmpi(texdef->name, q->name))
+		if (!Q_strcasecmp(texdef->name, q->name))
 		{
 			if (y > g_qeglobals.d_texturewin.originy)
 			{
@@ -861,7 +872,6 @@ DRAWING
 */
 
 int imax(int iFloor, int i) { if (i>iFloor) return iFloor; return i; }
-HFONT ghFont = NULL;
 
 /*
 ============
@@ -935,7 +945,7 @@ void Texture_Draw2 (int width, int height)
 			glEnd ();
 
 			// draw the selection border
-			if (!strcmpi(g_qeglobals.d_texturewin.texdef.name, q->name))
+			if (!Q_strcasecmp(g_qeglobals.d_texturewin.texdef.name, q->name))
 			{
 				glLineWidth (3);
 				glColor3f (1,0,0);
@@ -971,6 +981,8 @@ void Texture_Draw2 (int width, int height)
 	glBindTexture( GL_TEXTURE_2D, 0 );
 	glFinish();
 }
+
+#ifdef _WIN32
 
 /*
 ============
@@ -1109,6 +1121,7 @@ HWND CreateTextureWindow (void)
 
 	return hwnd;
 }
+#endif // _WIN32
 
 /*
 ==================

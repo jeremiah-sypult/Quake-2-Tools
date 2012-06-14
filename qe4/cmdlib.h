@@ -25,6 +25,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef __CMDLIB__
 #define __CMDLIB__
 
+#ifdef _WIN32
+// disable warnings
+#pragma warning(disable : 4996)		// unsafe functions
+#pragma warning(disable : 4244)     // conversion
+#pragma warning(disable : 4305)		// truncation
+#endif // _WIN32
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -33,11 +40,31 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <time.h>
 #include <stdarg.h>
 
-#ifndef __BYTEBOOL__
-#define __BYTEBOOL__
-typedef enum {false, true} qboolean;
+#ifndef byte
 typedef unsigned char byte;
+#endif /* byte */
+
+#if ( !defined (BOOL) && !defined (_WINDEF_) && !defined (OBJC_BOOL_DEFINED) )
+typedef int		BOOL;
+#ifndef FALSE
+#define FALSE	((BOOL)0)
 #endif
+#ifndef TRUE
+#define TRUE	((BOOL)1)
+#endif
+#endif /* BOOL */
+
+#ifndef bool
+typedef int		bool;
+#ifndef false
+#define false	((bool)0)
+#endif
+#ifndef true
+#define true	((bool)1)
+#endif
+#endif /* bool */
+
+typedef enum {qfalse, qtrue} qboolean;
 
 // the dec offsetof macro doesn't work very well...
 #define myoffsetof(type,identifier) ((size_t)&((type *)0)->identifier)

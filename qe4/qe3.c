@@ -33,8 +33,9 @@ void QE_CheckOpenGLForErrors(void)
 		char buffer[100];
 
 		sprintf( buffer, "OpenGL Error: %s", gluErrorString( i ) );
-
+#ifdef _WIN32
 		MessageBox( g_qeglobals.d_hwndMain, buffer , "QuakeEd Error", MB_OK | MB_ICONEXCLAMATION );
+#endif // _WIN32
 		exit( 1 );
     }
 }
@@ -150,6 +151,7 @@ QE_KeyDown
 
 qboolean QE_KeyDown (int key)
 {
+#ifdef _WIN32
 	switch (key)
 	{
 	case 'K':
@@ -279,7 +281,7 @@ qboolean QE_KeyDown (int key)
 		return false;
 
 	}
-
+#endif // _WIN32
 	return true;
 }
 
